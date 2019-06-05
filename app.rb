@@ -1,19 +1,26 @@
+require './lib/validator.rb'
+require './lib/sanitizer.rb'
 require './dataset/dummy.rb'
-require './services/validator.rb'
 require './services/data.rb'
 
 def normalize_data(input)
-  dummy = Dataset::Dummy.new
-  validator = Services::Validator.new
-  Services::Data.new(dataset: dummy, validator: validator).normalize(input)
+  validator = Validator.new
+  sanitizer = Sanitizer.new(input, validator)
+
+  data = Services::Data.new(
+    dataset: Dataset::Dummy.new,
+    validator: validator
+  )
+
+  data.normalize(sanitizer.sanitize)
 end
 
 examples = [
-  # To-be normalized data                                                           # Normalized data
-  [{ :year => '2018', :make => 'fo',      :model => 'focus',    :trim => 'blank' }, { :year => 2018,  :make => 'Ford',      :model => 'Focus',  :trim => nil }],
-  [{ :year => '200',  :make => 'blah',    :model => 'foo',      :trim => 'bar' },   { :year => '200', :make => 'blah',      :model => 'foo',    :trim => 'bar' }],
-  [{ :year => '1999', :make => 'Chev',    :model => 'IMPALA',   :trim => 'st' },    { :year => 1999,  :make => 'Chevrolet', :model => 'Impala', :trim => 'ST' }],
-  [{ :year => '2000', :make => 'ford',    :model => 'focus se', :trim => '' },      { :year => 2000,  :make => 'Ford',      :model => 'Focus',  :trim => 'SE' }]
+  # To-be normalized data                                               # Normalized data
+  [{ year: '2018', make: 'fo',      model: 'focus',    trim: 'blank' }, { year: 2018,  make: 'Ford',      model: 'Focus',  trim: nil }],
+  [{ year: '200',  make: 'blah',    model: 'foo',      trim: 'bar' },   { year: '200', make: 'blah',      model: 'foo',    trim: 'bar' }],
+  [{ year: '1999', make: 'Chev',    model: 'IMPALA',   trim: 'st' },    { year: 1999,  make: 'Chevrolet', model: 'Impala', trim: 'ST' }],
+  [{ year: '2000', make: 'ford',    model: 'focus se', trim: '' },      { year: 2000,  make: 'Ford',      model: 'Focus',  trim: 'SE' }]
 ]
 
 examples.each_with_index do |(input, expected_output), index|
